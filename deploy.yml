@@ -7,7 +7,7 @@
   pre_tasks:
     - name: Install EPEL repo
       package: name=epel-release state=present
-      when: ansible_distribution == "CentOS"
+      when: ansible_distribution == "Ubuntu"
     - name: Download pip script
       get_url:
         url: https://bootstrap.pypa.io/pip/2.7/get-pip.py
