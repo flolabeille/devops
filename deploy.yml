@@ -4,22 +4,33 @@
   become: true
   vars_files:
     - files/secrets/credentials.yml
+
   pre_tasks:
-    - name: Install EPEL repo
-      package: name=epel-release state=present
-      when: ansible_distribution == "Ubuntu"
-    - name: Download pip script
-      get_url:
+    - name: Install EPEL repo (only for RHEL/CentOS)
+      ansible.builtin.yum:
+        name: epel-release
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Download pip script for Python 2.7
+      ansible.builtin.get_url:
         url: https://bootstrap.pypa.io/pip/2.7/get-pip.py
         dest: /tmp/get-pip.py
-    - name: Install python-pip
-      command: python2.7 /tmp/get-pip.py
-    - name: Install docker python
-      pip: name=docker-py
+
+    - name: Install python-pip using get-pip.py
+      ansible.builtin.command: python2.7 /tmp/get-pip.py
+      args:
+        creates: /usr/local/bin/pip
+
+    - name: Install Docker Python SDK
+      ansible.builtin.pip:
+        name: docker-py
+
   tasks:
     - name: Create Apache container
-      docker_container:
+      community.docker.docker_container:
         name: webapp
         image: httpd
+        state: started
         ports:
           - "80:80"
